@@ -1,0 +1,19 @@
+# Core Numerical & Machine Learning
+numpy>=1.24.0
+scipy>=1.10.0
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Computer Vision & Image Processing
+opencv-python-headless>=4.8.0
+Pillow>=10.0.0
+
+# Generative AI & Latent Diffusion (Modular Backends)
+diffusers>=0.26.0
+transformers>=4.38.0
+accelerate>=0.27.0
+
+# Utilities & Data Structures
+pydantic>=2.5.0
+typing-extensions>=4.8.0
+pytest>=8.0.0

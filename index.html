@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cibis AI — Interactive 3D Nutrition & Food Intelligence</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- External Libraries (GSAP, Three.js, Chart.js, Lucide) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Modular Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="glow-sphere glow-top-left"></div>
+  <div class="glow-sphere glow-mid-right"></div>
+  <div class="glow-sphere glow-bottom"></div>
+
+  <!-- Pinned 3D WebGL Canvas Layer -->
+  <div id="webgl-canvas-container"></div>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="logo">
+      <span>CIBIS</span>
+      <span class="logo-tag">3D NUTRITION</span>
+    </div>
+    <div class="nav-menu">
+      <a href="#hero">Overview</a>
+      <a href="#dissection">3D X-Ray</a>
+      <a href="#scanner">AI Scanner</a>
+      <a href="#cgm">CGM Glucose</a>
+    </div>
+    <button class="nav-btn" onclick="gsap.to(window, {scrollTo: '#scanner', duration: 1})">
+      <i data-lucide="scan-line" style="width:16px;height:16px;"></i> Scan Meal Demo
+    </button>
+  </nav>
+
+  <!-- Main Content Flow -->
+  <div class="content-wrapper">
+
+    <!-- Section 1: Hero (Whole 3D Food) -->
+    <section class="scroll-section" id="hero">
+      <div class="hero-container">
+        <div class="badge-pill">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+          GSAP-Powered 3D Food Intelligence
+        </div>
+        <h1 class="hero-h1">
+          Nutrition reimagined in <span>interactive 3D.</span>
+        </h1>
+        <p class="hero-desc">
+          Cibis dissects food down to cellular and molecular levels — estimating 3D mass, USDA macronutrients, and postprandial blood glucose impact on scroll.
+        </p>
+        <div class="hero-btns">
+          <button class="nav-btn" onclick="gsap.to(window, {scrollTo: '#dissection', duration: 1})">
+            Explore 3D X-Ray <i data-lucide="arrow-down" style="width:16px;height:16px;"></i>
+          </button>
+          <button class="btn-secondary" onclick="gsap.to(window, {scrollTo: '#scanner', duration: 1})">
+            <i data-lucide="cpu" style="width:16px;height:16px;"></i> View AI Scanner
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: 3D Exploded X-Ray Dissection (Triggered via GSAP ScrollTrigger) -->
+    <section class="scroll-section" id="dissection">
+      <div class="dissection-layout">
+        <div class="dissection-text-card">
+          <div class="badge-pill" style="border-color: rgba(255,122,0,0.3); color: var(--accent-orange);">
+            <i data-lucide="layers" style="width:14px;height:14px;"></i> 3D Molecular Dissection
+          </div>
+          <h2 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 12px;">Molecular X-Ray on Scroll</h2>
+          <p style="color: var(--text-muted); margin-bottom: 24px;">
+            As you scroll down, the 3D food model separates into its core physiological layers, revealing exact nutrient distribution in real time.
+          </p>
+
+          <div class="dissection-step active" id="step-skin">
+            <h4 style="color: var(--accent-orange);"><i data-lucide="shield" style="width:16px;height:16px;"></i> Layer 1: Protective Peel & Polyphenols</h4>
+            <p>Rich in bioflavonoids, hesperidin, and insoluble dietary fiber matrix (3.4g).</p>
+          </div>
+
+          <div class="dissection-step" id="step-core">
+            <h4 style="color: var(--accent-cyan);"><i data-lucide="droplet" style="width:16px;height:16px;"></i> Layer 2: Hydration & Natural Sugars</h4>
+            <p>87% structured biological water, with 7.1g low-glycemic fructose & glucose.</p>
+          </div>
+
+          <div class="dissection-step" id="step-vitamins">
+            <h4 style="color: var(--accent-emerald);"><i data-lucide="zap" style="width:16px;height:16px;"></i> Layer 3: Micronutrients & Vitamin C</h4>
+            <p>Delivers 40.6mg active ascorbic acid (Vitamin C) and 181mg bioavailable potassium.</p>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </section>
+
+    <!-- Section 3: Live AI Scanner & Telemetry -->
+    <section class="scroll-section" id="scanner">
+      <div>
+        <div class="badge-pill" style="border-color: rgba(16,185,129,0.3); color: var(--accent-emerald);">
+          <i data-lucide="scan" style="width:14px;height:14px;"></i> Multi-Modal Computer Vision Engine
+        </div>
+        <h2 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 8px;">Real-Time Food Diagnostics</h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px;">
+          Select between pre-scanned test cases to view instant bounding box instance segmentations, 3D mass estimation, and nutrient profiles.
+        </p>
+
+        <!-- Test Case Switcher -->
+        <div class="test-case-tabs">
+          <button class="tab-btn active" id="tab-thali">
+            <i data-lucide="utensils" style="width:16px;height:16px;"></i> Test Case 1: Indian Thali Meal Tray
+          </button>
+          <button class="tab-btn" id="tab-fruit">
+            <i data-lucide="apple" style="width:16px;height:16px;"></i> Test Case 2: Fresh Produce & Fruit Basket
+          </button>
+        </div>
+
+        <div class="scanner-grid">
+          <!-- Left: Annotated Image -->
+          <div class="image-preview-frame glass-card">
+            <img id="scanner-image-display" src="thali_scanned_result.jpg" alt="Scanned Food Image" />
+          </div>
+
+          <!-- Right: Telemetry HUD -->
+          <div class="glass-card">
+            <div class="hud-header">
+              <div>
+                <h3 id="telemetry-meal-title" style="font-size: 1.2rem; font-weight: 700;">Indian Thali Lunch Tray</h3>
+                <span id="telemetry-items-count" style="font-size: 0.8rem; color: var(--text-muted);">4 Compartments Identified</span>
+              </div>
+              <div class="hud-badge">
+                <i data-lucide="check-circle" style="width:12px;height:12px;"></i>
+                <span>99.9% CONFIDENCE</span>
+              </div>
+            </div>
+
+            <div class="metrics-row">
+              <div class="metric-box">
+                <span>Total Mass</span>
+                <h4 id="stat-mass" style="color: var(--accent-cyan);">496.5 g</h4>
+              </div>
+              <div class="metric-box">
+                <span>Total Energy</span>
+                <h4 id="stat-calories" style="color: var(--accent-orange);">740.3 kcal</h4>
+              </div>
+              <div class="metric-box">
+                <span>Total Protein</span>
+                <h4 id="stat-protein" style="color: var(--accent-emerald);">61.6 g</h4>
+              </div>
+              <div class="metric-box">
+                <span>Net Carbs</span>
+                <h4 id="stat-carbs" style="color: var(--accent-purple);">34.7 g</h4>
+              </div>
+            </div>
+
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+              Identified Food Items
+            </div>
+            <div id="items-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: CGM Blood Glucose Forecast -->
+    <section class="scroll-section" id="cgm">
+      <div class="cgm-grid">
+        <div>
+          <div class="badge-pill" style="border-color: rgba(168,85,247,0.3); color: var(--accent-purple);">
+            <i data-lucide="activity" style="width:14px;height:14px;"></i> Metabolic Simulation
+          </div>
+          <h2 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 16px;">120-Min Blood Glucose (CGM) Curve</h2>
+          <p style="color: var(--text-muted); margin-bottom: 24px;">
+            Simulates dynamic postprandial glucose curves based on protein, fiber, and fat ratios blunting the gastric emptying rate.
+          </p>
+
+          <div class="glass-card" style="padding: 20px; margin-bottom: 16px;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 4px;">
+              Gastric Delay Factor
+            </div>
+            <p id="cgm-gastric-note" style="font-size: 0.85rem; color: var(--text-muted);">
+              High protein (61.6g) and fiber slow digestion by 4.05x, eliminating glucose spikes.
+            </p>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding: 24px;">
+          <canvas id="cgmChart" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2026 Cibis AI — 3D Food Recognition, Volumetric Mass & Precision Nutrition Engine.</p>
+    </footer>
+
+  </div>
+
+  <!-- Custom Modular JavaScript Entrypoint -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
