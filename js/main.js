@@ -35,6 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error(data.error || 'Scan failed');
       const rows = data.predictions.map(item => `<div class="food-item-row"><span>${item.name}</span><span class="food-item-stats">Model score: ${(item.score * 100).toFixed(1)}%</span></div>`).join('');
       document.getElementById('items-list').innerHTML = rows;
+      const macroBox = document.getElementById('macro-results');
+      if (data.macro_match) {
+        const m = data.macro_match.per_100g;
+        macroBox.innerHTML = `<strong>Possible USDA match: ${data.macro_match.food_name}</strong><p>Per 100 g: ${m.calories_kcal ?? '—'} kcal · Protein ${m.protein_g ?? '—'} g · Carbohydrates ${m.carbs_g ?? '—'} g · Fat ${m.fat_g ?? '—'} g</p><small>Source: USDA FoodData Central (FDC ID ${data.macro_match.fdc_id}). Check that the match fits your food. Values are not portion totals.</small>`;
+      } else {
+        macroBox.textContent = 'No USDA macro match found for this prediction.';
+      }
       notice.textContent = data.notice;
     } catch (error) { notice.textContent = error.message; }
   });

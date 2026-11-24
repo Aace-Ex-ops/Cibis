@@ -13,7 +13,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The first scan downloads model weights and may take a few minutes; subsequent requests use the local cache. Prediction scores are not calibrated confidence. Nutrition, portion mass, ripeness, and glucose estimates remain unvalidated and should not guide medical decisions.
+Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The first scan downloads model weights and may take a few minutes; subsequent requests use the local cache. Prediction scores are not calibrated confidence. For the top predicted label, the app queries USDA FoodData Central and displays a possible match with macros per 100 g. Check the match; it is not verified against the photo and is not a portion total. USDA's `DEMO_KEY` is used by default with low rate limits; set `USDA_FDC_API_KEY` to your own key for regular use. A measured portion weight is needed to estimate macros for the serving. Nutrition, portion mass, ripeness, and glucose estimates remain unvalidated and should not guide medical decisions.
 
 `python scan.py path/to/image.jpg` runs the command-line report and writes `scanned_result.jpg` in the project folder.
 

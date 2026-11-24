@@ -2,6 +2,8 @@
 from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image, UnidentifiedImageError
 import io
+import os
+import requests
 import torch
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 
@@ -26,6 +28,29 @@ def classify_food(image):
     return [{"name": _model.config.id2label[int(i)].replace("_", " "), "score": round(float(v), 4)}
             for v, i in zip(values, indices)]
 
+def lookup_macros(food_label):
+    """Find a USDA per-100g match; return None when data are unavailable."""
+    api_key = os.environ.get("USDA_FDC_API_KEY", "DEMO_KEY")
+    response = requests.post(
+        f"https://api.nal.usda.gov/fdc/v1/foods/search?api_key={api_key}",
+        json={"query": food_label, "dataType": ["Foundation", "SR Legacy", "Survey (FNDDS)"], "pageSize": 5},
+        timeout=10,
+    )
+    response.raise_for_status()
+    foods = response.json().get("foods", [])
+    if not foods:
+        return None
+    food = foods[0]
+    nutrients = {n.get("nutrientName", "").lower(): n.get("value") for n in food.get("foodNutrients", [])}
+    def get(*names):
+        return next((nutrients[n] for n in names if nutrients.get(n) is not None), None)
+    macros = {"calories_kcal": get("energy", "energy (atwater general factors)"),
+              "protein_g": get("protein"), "carbs_g": get("carbohydrate, by difference"),
+              "fat_g": get("total lipid (fat)")}
+    if all(v is None for v in macros.values()):
+        return None
+    return {"food_name": food.get("description", food_label), "fdc_id": food.get("fdcId"), "per_100g": macros}
+
 @app.get("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -47,8 +72,13 @@ def scan():
     except Exception as exc:
         app.logger.exception("Food classifier could not load or run")
         return jsonify(error=f"Food model unavailable: {type(exc).__name__}. Check internet access on first run."), 503
-    return jsonify({"predictions": predictions,
-        "notice": "Food-101 classifier: predicts one dish for the whole image from 101 categories. Scores are model scores, not calibrated confidence. It does not detect multiple portions or estimate nutrition."})
+    macros = None
+    try:
+        macros = lookup_macros(predictions[0]["name"])
+    except requests.RequestException:
+        app.logger.warning("USDA FoodData Central lookup failed")
+    return jsonify({"predictions": predictions, "macro_match": macros,
+        "notice": "Food-101 predicts one dish for the whole image. Macro values, when found, are USDA values per 100 g for a possible text match, not measured values for your uploaded portion. Confirm the food and enter its weight for portion totals."})
 
 @app.errorhandler(413)
 def too_large(_):
