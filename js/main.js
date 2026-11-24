@@ -1,48 +1,45 @@
-/**
- * Cibis AI Web Application Main Entrypoint
- */
-
-import { ThreeFoodScene } from './threeScene.js';
-import { initGsapAnimations } from './gsapAnimations.js';
-import { CGMGlucoseChart } from './cgmChart.js';
-import { FoodScannerManager } from './scanner.js';
-
+/** Cibis food scan page interactions. */
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Initialize Icons
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
-
-  // 2. Initialize 3D Three.js Scene
-  const threeScene = new ThreeFoodScene('webgl-canvas-container');
-
-  // 3. Initialize GSAP ScrollTrigger Animations
-  initGsapAnimations(threeScene);
-
-  // 4. Initialize CGM Chart
-  const cgmChart = new CGMGlucoseChart('cgmChart');
-
-  // 5. Initialize Food Scanner Manager
-  new FoodScannerManager(cgmChart);
+  window.lucide?.createIcons();
   const form = document.getElementById('scan-form');
-  form?.addEventListener('submit', async (event) => {
+  const fileInput = document.getElementById('scan-image');
+  const preview = document.getElementById('photo-preview');
+  const previewImage = document.getElementById('preview-image');
+  const notice = document.getElementById('scan-notice');
+  let previewUrl;
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (!file) { preview.hidden = true; return; }
+    previewUrl = URL.createObjectURL(file);
+    previewImage.src = previewUrl;
+    preview.hidden = false;
+    notice.textContent = `${file.name} selected. Run the scan when ready.`;
+  });
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const notice = document.getElementById('scan-notice');
-    notice.textContent = 'Analyzing…';
+    const button = form.querySelector('button');
+    button.disabled = true;
+    button.textContent = 'Analyzing photo…';
+    notice.textContent = 'The first scan may take a few minutes while the food model downloads.';
     try {
       const response = await fetch('/api/scan', { method: 'POST', body: new FormData(form) });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Scan failed');
-      const rows = data.predictions.map(item => `<div class="food-item-row"><span>${item.name}</span><span class="food-item-stats">Model score: ${(item.score * 100).toFixed(1)}%</span></div>`).join('');
-      document.getElementById('items-list').innerHTML = rows;
-      const macroBox = document.getElementById('macro-results');
+      if (!response.ok) throw new Error(data.error || 'Scan failed. Please try again.');
+      document.getElementById('items-list').innerHTML = data.predictions.map((item, index) =>
+        `<div class="prediction-row"><span class="prediction-rank">${String(index + 1).padStart(2, '0')}</span><strong>${item.name}</strong><span class="prediction-score">${(item.score * 100).toFixed(1)}%</span></div>`
+      ).join('');
+      const box = document.getElementById('macro-results');
       if (data.macro_match) {
         const m = data.macro_match.per_100g;
-        macroBox.innerHTML = `<strong>Possible USDA match: ${data.macro_match.food_name}</strong><p>Per 100 g: ${m.calories_kcal ?? '—'} kcal · Protein ${m.protein_g ?? '—'} g · Carbohydrates ${m.carbs_g ?? '—'} g · Fat ${m.fat_g ?? '—'} g</p><small>Source: USDA FoodData Central (FDC ID ${data.macro_match.fdc_id}). Check that the match fits your food. Values are not portion totals.</small>`;
+        box.innerHTML = `<div class="eyebrow">POSSIBLE USDA MATCH</div><h3>${data.macro_match.food_name}</h3><div class="macro-grid"><div><strong>${m.calories_kcal ?? '—'}</strong><span>kcal</span></div><div><strong>${m.protein_g ?? '—'} g</strong><span>protein</span></div><div><strong>${m.carbs_g ?? '—'} g</strong><span>carbs</span></div><div><strong>${m.fat_g ?? '—'} g</strong><span>fat</span></div></div><small>Per 100 g · USDA FDC #${data.macro_match.fdc_id}</small>`;
       } else {
-        macroBox.textContent = 'No USDA macro match found for this prediction.';
+        box.innerHTML = '<p class="empty-state">No nutrition match found for the top suggestion.</p>';
       }
       notice.textContent = data.notice;
     } catch (error) { notice.textContent = error.message; }
+    finally { button.disabled = false; button.innerHTML = '<i data-lucide="scan-line"></i> Analyze photo'; window.lucide?.createIcons(); }
   });
 });
