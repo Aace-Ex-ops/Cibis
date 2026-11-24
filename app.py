@@ -87,6 +87,29 @@ def scan():
     return jsonify({"predictions": predictions, "macro_match": macros,
         "notice": "Food-101 predicts one dish for the whole image. Macro values, when found, are USDA values per 100 g for a possible text match, not measured values for your uploaded portion. Confirm the food and enter its weight for portion totals."})
 
+@app.post("/api/nutrition")
+def nutrition_lookup():
+    body = request.get_json(silent=True) or {}
+    label = str(body.get("food", "")).strip()[:100]
+    if not label:
+        return jsonify(error="Choose a food prediction first."), 400
+    try:
+        grams = float(body.get("grams", 100))
+        if grams <= 0 or grams > 5000:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify(error="Serving weight must be between 1 and 5000 g."), 400
+    try:
+        match = lookup_macros(label)
+    except requests.RequestException:
+        return jsonify(error="USDA lookup failed. Check your internet connection and try again."), 503
+    if not match:
+        return jsonify(error="No USDA nutrition entry found for this food name."), 404
+    portion = {key: (round(value * grams / 100, 1) if value is not None else None)
+               for key, value in match["per_100g"].items()}
+    return jsonify({"match": match, "grams": grams, "portion": portion,
+                    "notice": "USDA reference values scaled to your entered weight; recipe and preparation differences may change the actual values."})
+
 @app.errorhandler(413)
 def too_large(_):
     return jsonify(error="Image is too large (12 MB maximum)."), 413

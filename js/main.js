@@ -29,17 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Scan failed. Please try again.');
       document.getElementById('items-list').innerHTML = data.predictions.map((item, index) =>
-        `<div class="prediction-row"><span class="prediction-rank">${String(index + 1).padStart(2, '0')}</span><strong>${item.name}</strong><span class="prediction-score">${(item.score * 100).toFixed(1)}%</span></div>`
+        `<button class="prediction-row" type="button" data-food="${item.name}"><span class="prediction-rank">${String(index + 1).padStart(2, '0')}</span><strong>${item.name}</strong><span class="prediction-score">${(item.score * 100).toFixed(1)}%</span></button>`
       ).join('');
-      const box = document.getElementById('macro-results');
-      if (data.macro_match) {
-        const m = data.macro_match.per_100g;
-        box.innerHTML = `<div class="eyebrow">POSSIBLE USDA MATCH</div><h3>${data.macro_match.food_name}</h3><div class="macro-grid"><div><strong>${m.calories_kcal ?? '—'}</strong><span>kcal</span></div><div><strong>${m.protein_g ?? '—'} g</strong><span>protein</span></div><div><strong>${m.carbs_g ?? '—'} g</strong><span>carbs</span></div><div><strong>${m.fat_g ?? '—'} g</strong><span>fat</span></div></div><small>Per 100 g · USDA FDC #${data.macro_match.fdc_id}</small>`;
-      } else {
-        box.innerHTML = '<p class="empty-state">No nutrition match found for the top suggestion.</p>';
-      }
+      document.querySelectorAll('.prediction-row').forEach(row => row.addEventListener('click', () => {
+        document.querySelectorAll('.prediction-row').forEach(button => button.classList.toggle('selected', button === row));
+        lookupNutrition(row.dataset.food);
+      }));
+      document.querySelector('.prediction-row')?.click();
       notice.textContent = data.notice;
     } catch (error) { notice.textContent = error.message; }
     finally { button.disabled = false; button.innerHTML = '<i data-lucide="scan-line"></i> Analyze photo'; window.lucide?.createIcons(); }
   });
+
+  async function lookupNutrition(food) {
+    const box = document.getElementById('macro-results');
+    box.innerHTML = `<div class="eyebrow">USDA NUTRITION LOOKUP</div><h3>${food}</h3><label class="weight-label" for="serving-weight">Serving weight</label><div class="weight-control"><input id="serving-weight" type="number" min="1" max="5000" value="100"><span>grams</span><button id="weight-submit" class="nav-btn" type="button">Update</button></div><div id="portion-values" class="empty-state">Looking up a matching USDA food entry…</div>`;
+    const run = async () => {
+      const grams = document.getElementById('serving-weight').value;
+      const output = document.getElementById('portion-values');
+      output.textContent = 'Looking up USDA reference data…';
+      try {
+        const response = await fetch('/api/nutrition', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({food, grams}) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Nutrition lookup failed');
+        const m = result.portion;
+        output.innerHTML = `<strong>Possible match: ${result.match.food_name}</strong><div class="macro-grid"><div><strong>${m.calories_kcal ?? '—'}</strong><span>kcal</span></div><div><strong>${m.protein_g ?? '—'} g</strong><span>protein</span></div><div><strong>${m.carbs_g ?? '—'} g</strong><span>carbs</span></div><div><strong>${m.fat_g ?? '—'} g</strong><span>fat</span></div></div><small>For ${result.grams} g · USDA FDC #${result.match.fdc_id}</small><p class="lookup-note">${result.notice}</p>`;
+      } catch(error) { output.textContent = error.message; }
+    };
+    document.getElementById('weight-submit').addEventListener('click', run);
+    run();
+  }
 });
