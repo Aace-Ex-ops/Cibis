@@ -1,6 +1,6 @@
 # Cibis
 
-Cibis is an experimental food-image demo. The browser page includes a 3D-themed showcase and an upload endpoint. Upload predictions use the pretrained `nateraw/vit-base-food101` image classifier, which predicts one dish from Food-101's 101 categories for the whole image. It does not locate multiple foods or recognize every food. First use downloads the model weights from Hugging Face. See the model card for its dataset and reported evaluation: https://huggingface.co/nateraw/food.
+Cibis is an experimental food-image demo with a browser upload flow. It combines the `nateraw/vit-base-food101` image classifier for dish suggestions with `google/vit-base-patch16-224` for common food and fruit suggestions. Both classify the whole image, do not locate individual items, and do not cover every food. First use downloads both model weights from Hugging Face. Model cards: https://huggingface.co/nateraw/food and https://huggingface.co/google/vit-base-patch16-224.
 
 ## Run locally
 
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The first scan downloads model weights and may take a few minutes; subsequent requests use the local cache. Prediction scores are not calibrated confidence. For the top predicted label, the app queries USDA FoodData Central and displays a possible match with macros per 100 g. Check the match; it is not verified against the photo and is not a portion total. USDA's `DEMO_KEY` is used by default with low rate limits; set `USDA_FDC_API_KEY` to your own key for regular use. A measured portion weight is needed to estimate macros for the serving. Nutrition, portion mass, ripeness, and glucose estimates remain unvalidated and should not guide medical decisions.
+Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The first scan downloads both model weights and may take a few minutes; subsequent requests use the local cache. Prediction scores are not calibrated confidence. Select a candidate label to query USDA FoodData Central and display a possible match with macros scaled to the entered serving weight. Check the match; it is not verified against the photo. USDA's `DEMO_KEY` is used by default with low rate limits; set `USDA_FDC_API_KEY` to your own key for regular use. Nutrition, portion mass, ripeness, and glucose estimates remain unvalidated and should not guide medical decisions.
 
 `python scan.py path/to/image.jpg` runs the command-line report and writes `scanned_result.jpg` in the project folder.
 

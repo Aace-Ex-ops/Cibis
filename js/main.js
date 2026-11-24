@@ -28,9 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch('/api/scan', { method: 'POST', body: new FormData(form) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Scan failed. Please try again.');
-      document.getElementById('items-list').innerHTML = data.predictions.map((item, index) =>
+      const dishRows = data.predictions.map((item, index) =>
         `<button class="prediction-row" type="button" data-food="${item.name}"><span class="prediction-rank">${String(index + 1).padStart(2, '0')}</span><strong>${item.name}</strong><span class="prediction-score">${(item.score * 100).toFixed(1)}%</span></button>`
       ).join('');
+      const commonRows = data.common_foods.map((item, index) =>
+        `<button class="prediction-row" type="button" data-food="${item.name}"><span class="prediction-rank">${String(index + 1).padStart(2, '0')}</span><strong>${item.name}</strong><span class="prediction-score">${(item.score * 100).toFixed(1)}%</span></button>`
+      ).join('');
+      document.getElementById('items-list').innerHTML = `<div class="eyebrow list-label">DISH SUGGESTIONS</div>${dishRows}<div class="eyebrow list-label">FRUITS & COMMON FOODS</div>${commonRows || '<p class="empty-state">No common food label detected.</p>'}`;
       document.querySelectorAll('.prediction-row').forEach(row => row.addEventListener('click', () => {
         document.querySelectorAll('.prediction-row').forEach(button => button.classList.toggle('selected', button === row));
         lookupNutrition(row.dataset.food);

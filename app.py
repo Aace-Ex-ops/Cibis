@@ -17,8 +17,11 @@ for line in Path(".env").read_text().splitlines() if Path(".env").exists() else 
     if separator and key.strip() and key.strip() not in os.environ:
         os.environ[key.strip()] = value.strip().strip('"').strip("'")
 MODEL_ID = "nateraw/vit-base-food101"
+GENERAL_MODEL_ID = "google/vit-base-patch16-224"
 _processor = None
 _model = None
+_general_processor = None
+_general_model = None
 
 def classify_food(image):
     """Lazy-load Food-101 classifier and return its five best dish labels."""
@@ -34,6 +37,27 @@ def classify_food(image):
         values, indices = torch.topk(scores, k=5)
     return [{"name": _model.config.id2label[int(i)].replace("_", " "), "score": round(float(v), 4)}
             for v, i in zip(values, indices)]
+
+def classify_common_foods(image):
+    """Second opinion from ImageNet for common whole foods and dessert objects."""
+    global _general_processor, _general_model
+    if _general_processor is None:
+        _general_processor = AutoImageProcessor.from_pretrained(GENERAL_MODEL_ID)
+        _general_model = AutoModelForImageClassification.from_pretrained(GENERAL_MODEL_ID)
+        _general_model.eval()
+    inputs = _general_processor(images=image.convert("RGB"), return_tensors="pt")
+    with torch.inference_mode():
+        scores = torch.softmax(_general_model(**inputs).logits[0], dim=-1)
+        values, indices = torch.topk(scores, k=15)
+    food_words = ("fruit", "apple", "orange", "lemon", "lime", "banana", "berry", "strawberry", "pineapple", "fig", "pomegranate", "jackfruit", "grape", "melon", "cantaloupe", "watermelon", "peach", "pear", "plum", "mango", "coconut", "chocolate", "ice cream", "ice lolly", "dessert", "cake", "cookie", "dough", "pretzel", "bagel", "bread", "pizza", "sandwich", "soup", "meat", "chicken", "beef", "pork", "fish", "seafood", "egg", "cheese", "rice", "pasta", "noodle", "curry", "broccoli", "cauliflower", "cabbage", "carrot", "corn", "cucumber", "pepper", "mushroom", "potato", "tomato", "onion", "vegetable", "sausage", "hotdog", "hot dog", "hamburger", "burger", "salad", "sushi", "dumpling", "burrito", "taco", "waffle", "pancake", "muffin", "donut", "doughnut", "macaron", "custard", "pudding", "candy", "confection")
+    output = []
+    for value, index in zip(values, indices):
+        label = _general_model.config.id2label[int(index)]
+        if any(word in label.lower() for word in food_words):
+            output.append({"name": label.replace("_", " "), "score": round(float(value), 4)})
+        if len(output) == 5:
+            break
+    return output
 
 def lookup_macros(food_label):
     """Find a USDA per-100g match; return None when data are unavailable."""
@@ -76,6 +100,7 @@ def scan():
         return jsonify(error="Could not decode that image."), 400
     try:
         predictions = classify_food(image)
+        common_foods = classify_common_foods(image)
     except Exception as exc:
         app.logger.exception("Food classifier could not load or run")
         return jsonify(error=f"Food model unavailable: {type(exc).__name__}. Check internet access on first run."), 503
@@ -84,7 +109,7 @@ def scan():
         macros = lookup_macros(predictions[0]["name"])
     except requests.RequestException:
         app.logger.warning("USDA FoodData Central lookup failed")
-    return jsonify({"predictions": predictions, "macro_match": macros,
+    return jsonify({"predictions": predictions, "common_foods": common_foods, "macro_match": macros,
         "notice": "Food-101 predicts one dish for the whole image. Macro values, when found, are USDA values per 100 g for a possible text match, not measured values for your uploaded portion. Confirm the food and enter its weight for portion totals."})
 
 @app.post("/api/nutrition")
