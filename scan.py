@@ -37,11 +37,6 @@ def find_target_image(project_dir: str) -> str:
         image_files.sort(key=os.path.getmtime, reverse=True)
         return image_files[0]
 
-    # 4. Fallback demo image from user upload cache if available
-    fallback_path = r"C:\Users\adity\.gemini\antigravity\brain\90560c53-3def-437e-843e-1534131f068c\.user_uploaded\media_1790060807704.jpg"
-    if os.path.exists(fallback_path):
-        return fallback_path
-
     raise FileNotFoundError(
         "No image found! Please drop any photo (e.g., 'input.jpg' or any .png/.jpg) into this folder and run again."
     )
@@ -79,7 +74,7 @@ def run_auto_scan():
     # 1. MEAL SUMMARY
     print("\n" + "-" * 28 + " 1. MEAL SUMMARY " + "-" * 28)
     print(f"• Total Recognized Items : {report.meal_summary.total_items_count}")
-    print(f"• Total Physical Mass     : {report.meal_summary.total_mass_g:.1f} g  (3D Volume Precision: 99.9%)")
+    print(f"• Rough estimated mass    : {report.meal_summary.total_mass_g:.1f} g (unvalidated; no scale reference)")
     print(f"• Total Calories          : {report.meal_summary.total_calories_kcal:.1f} kcal")
     print(f"• Protein / Total Fats    : {report.meal_summary.total_protein_g:.1f} g / {report.meal_summary.total_fat_g:.1f} g")
     print(f"• Net Carbs / Fiber       : {(report.meal_summary.total_carbs_g - report.meal_summary.total_fiber_g):.1f} g / {report.meal_summary.total_fiber_g:.1f} g")
@@ -114,13 +109,6 @@ def run_auto_scan():
     print("\n" + "=" * 68)
     print(f"[SUCCESS] Annotated HUD Result Saved to: scanned_result.jpg")
     print("=" * 68 + "\n")
-
-    # Auto-open result image in Windows default viewer
-    try:
-        os.startfile(out_path)
-    except Exception:
-        pass
-
 
 if __name__ == "__main__":
     run_auto_scan()

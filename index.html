@@ -3,19 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cibis AI — Interactive 3D Nutrition & Food Intelligence</title>
+  <title>Cibis — Food photo nutrition estimates</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
-  <!-- External Libraries (GSAP, Three.js, Chart.js, Lucide) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Custom Modular Stylesheet -->
@@ -23,28 +18,19 @@
 </head>
 <body>
 
-  <!-- Ambient Glow Effects -->
-  <div class="glow-sphere glow-top-left"></div>
-  <div class="glow-sphere glow-mid-right"></div>
-  <div class="glow-sphere glow-bottom"></div>
-
-  <!-- Pinned 3D WebGL Canvas Layer -->
-  <div id="webgl-canvas-container"></div>
-
   <!-- Navigation Bar -->
   <nav>
     <div class="logo">
       <span>CIBIS</span>
-      <span class="logo-tag">3D NUTRITION</span>
+      <span class="logo-tag">FOOD SCAN</span>
     </div>
     <div class="nav-menu">
       <a href="#hero">Overview</a>
-      <a href="#dissection">3D X-Ray</a>
-      <a href="#scanner">AI Scanner</a>
-      <a href="#cgm">CGM Glucose</a>
+      <a href="#scanner">Food scanner</a>
+      <a href="#how-it-works">How it works</a>
     </div>
-    <button class="nav-btn" onclick="gsap.to(window, {scrollTo: '#scanner', duration: 1})">
-      <i data-lucide="scan-line" style="width:16px;height:16px;"></i> Scan Meal Demo
+    <button class="nav-btn" onclick="location.hash='scanner'">
+      <i data-lucide="scan-line" style="width:16px;height:16px;"></i> Try a scan
     </button>
   </nav>
 
@@ -56,19 +42,19 @@
       <div class="hero-container">
         <div class="badge-pill">
           <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
-          GSAP-Powered 3D Food Intelligence
+          FOOD PHOTO · NUTRITION LOOKUP
         </div>
         <h1 class="hero-h1">
-          Nutrition reimagined in <span>interactive 3D.</span>
+          Know what’s on <span>your plate.</span>
         </h1>
         <p class="hero-desc">
-          Cibis dissects food down to cellular and molecular levels — estimating 3D mass, USDA macronutrients, and postprandial blood glucose impact on scroll.
+          Upload a food photo to get dish suggestions and look up nutrition information. Review each result before relying on it.
         </p>
         <div class="hero-btns">
-          <button class="nav-btn" onclick="gsap.to(window, {scrollTo: '#dissection', duration: 1})">
-            Explore 3D X-Ray <i data-lucide="arrow-down" style="width:16px;height:16px;"></i>
+          <button class="nav-btn" onclick="location.hash='how-it-works'">
+            How it works <i data-lucide="arrow-down" style="width:16px;height:16px;"></i>
           </button>
-          <button class="btn-secondary" onclick="gsap.to(window, {scrollTo: '#scanner', duration: 1})">
+          <button class="btn-secondary" onclick="location.hash='scanner'">
             <i data-lucide="cpu" style="width:16px;height:16px;"></i> View AI Scanner
           </button>
         </div>
@@ -107,71 +93,38 @@
     </section>
 
     <!-- Section 3: Live AI Scanner & Telemetry -->
-    <section class="scroll-section" id="scanner">
-      <div>
-        <div class="badge-pill" style="border-color: rgba(16,185,129,0.3); color: var(--accent-emerald);">
-          <i data-lucide="scan" style="width:14px;height:14px;"></i> Multi-Modal Computer Vision Engine
+    <section class="scroll-section scanner-section" id="scanner">
+      <header class="section-heading">
+        <div class="eyebrow">YOUR FOOD, AT A GLANCE</div>
+        <h2>Scan a meal</h2>
+        <p>Start with one clear photo. Cibis suggests a dish, then looks up a possible nutrition match.</p>
+      </header>
+      <div class="scanner-grid">
+        <div class="glass-card upload-card">
+          <form id="scan-form">
+            <label class="upload-drop" for="scan-image">
+              <span class="upload-icon"><i data-lucide="image-plus"></i></span>
+              <strong>Choose a food photo</strong>
+              <span>JPG, PNG or WEBP · up to 12 MB</span>
+              <input id="scan-image" name="image" type="file" accept="image/*" required>
+            </label>
+            <button class="nav-btn scan-submit" type="submit"><i data-lucide="scan-line"></i> Analyze photo</button>
+          </form>
+          <div id="photo-preview" class="photo-preview" hidden><img id="preview-image" alt="Selected meal preview"></div>
         </div>
-        <h2 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 8px;">Real-Time Food Diagnostics</h2>
-        <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px;">
-          Select between pre-scanned test cases to view instant bounding box instance segmentations, 3D mass estimation, and nutrient profiles.
-        </p>
-
-        <!-- Test Case Switcher -->
-        <div class="test-case-tabs">
-          <button class="tab-btn active" id="tab-thali">
-            <i data-lucide="utensils" style="width:16px;height:16px;"></i> Test Case 1: Indian Thali Meal Tray
-          </button>
-          <button class="tab-btn" id="tab-fruit">
-            <i data-lucide="apple" style="width:16px;height:16px;"></i> Test Case 2: Fresh Produce & Fruit Basket
-          </button>
-        </div>
-
-        <div class="scanner-grid">
-          <!-- Left: Annotated Image -->
-          <div class="image-preview-frame glass-card">
-            <img id="scanner-image-display" src="thali_scanned_result.jpg" alt="Scanned Food Image" />
-          </div>
-
-          <!-- Right: Telemetry HUD -->
-          <div class="glass-card">
-            <div class="hud-header">
-              <div>
-                <h3 id="telemetry-meal-title" style="font-size: 1.2rem; font-weight: 700;">Indian Thali Lunch Tray</h3>
-                <span id="telemetry-items-count" style="font-size: 0.8rem; color: var(--text-muted);">4 Compartments Identified</span>
-              </div>
-              <div class="hud-badge">
-                <i data-lucide="check-circle" style="width:12px;height:12px;"></i>
-                <span>99.9% CONFIDENCE</span>
-              </div>
-            </div>
-
-            <div class="metrics-row">
-              <div class="metric-box">
-                <span>Total Mass</span>
-                <h4 id="stat-mass" style="color: var(--accent-cyan);">496.5 g</h4>
-              </div>
-              <div class="metric-box">
-                <span>Total Energy</span>
-                <h4 id="stat-calories" style="color: var(--accent-orange);">740.3 kcal</h4>
-              </div>
-              <div class="metric-box">
-                <span>Total Protein</span>
-                <h4 id="stat-protein" style="color: var(--accent-emerald);">61.6 g</h4>
-              </div>
-              <div class="metric-box">
-                <span>Net Carbs</span>
-                <h4 id="stat-carbs" style="color: var(--accent-purple);">34.7 g</h4>
-              </div>
-            </div>
-
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
-              Identified Food Items
-            </div>
-            <div id="items-list"></div>
-          </div>
+        <div class="glass-card results-card">
+          <div class="result-heading"><div class="eyebrow">SCAN RESULTS</div><span class="status-dot">ESTIMATES</span></div>
+          <div id="items-list" class="prediction-list" aria-live="polite"><p class="empty-state">Your food suggestions will appear here after a scan.</p></div>
+          <div id="macro-results" class="macro-results" aria-live="polite"></div>
+          <p id="scan-notice" class="scan-notice" role="status">Predictions can be wrong. Check the food and serving before using nutrition values.</p>
         </div>
       </div>
+    </section>
+
+    <section class="how-section" id="how-it-works">
+      <div><span class="step-number">01</span><strong>Upload a photo</strong><p>Use a clear, well-lit image.</p></div>
+      <div><span class="step-number">02</span><strong>Review the guess</strong><p>The model suggests likely dishes.</p></div>
+      <div><span class="step-number">03</span><strong>Check the nutrition match</strong><p>USDA values are per 100 g and may not match your exact recipe.</p></div>
     </section>
 
     <!-- Section 4: CGM Blood Glucose Forecast -->
