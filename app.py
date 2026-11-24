@@ -3,12 +3,19 @@ from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image, UnidentifiedImageError
 import io
 import os
+from pathlib import Path
 import requests
 import torch
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
+
+# Read local secrets without a dotenv dependency. Existing process variables win.
+for line in Path(".env").read_text().splitlines() if Path(".env").exists() else []:
+    key, separator, value = line.partition("=")
+    if separator and key.strip() and key.strip() not in os.environ:
+        os.environ[key.strip()] = value.strip().strip('"').strip("'")
 MODEL_ID = "nateraw/vit-base-food101"
 _processor = None
 _model = None
