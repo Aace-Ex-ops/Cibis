@@ -33,12 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch('/api/scan', { method: 'POST', body: new FormData(form) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Scan failed');
-      const rows = data.items.map(item => `<div class="food-item-row"><span>${item.name}</span><span class="food-item-stats">${item.mass_g} g · ${item.calories_kcal} kcal</span></div>`).join('');
-      document.getElementById('items-list').innerHTML = rows || '<p>No supported orange-colored regions found.</p>';
-      document.getElementById('stat-mass').textContent = `${data.total_mass_g} g`;
-      document.getElementById('stat-calories').textContent = `${data.calories_kcal} kcal`;
-      document.getElementById('stat-protein').textContent = `${data.protein_g} g`;
-      document.getElementById('stat-carbs').textContent = `${data.carbs_g} g`;
+      const rows = data.predictions.map(item => `<div class="food-item-row"><span>${item.name}</span><span class="food-item-stats">Model score: ${(item.score * 100).toFixed(1)}%</span></div>`).join('');
+      document.getElementById('items-list').innerHTML = rows;
       notice.textContent = data.notice;
     } catch (error) { notice.textContent = error.message; }
   });

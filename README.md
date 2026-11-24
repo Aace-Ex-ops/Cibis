@@ -1,6 +1,6 @@
 # Cibis
 
-Cibis is an experimental food-image demo. The browser page includes a 3D-themed showcase and an upload endpoint. The current detector only finds orange-colored regions using HSV thresholds; it is not a trained food-recognition model. Nutrient values come from the bundled per-100 g lookup table, while portion mass depends on rough image geometry and cannot be trusted without a known scale and validated model.
+Cibis is an experimental food-image demo. The browser page includes a 3D-themed showcase and an upload endpoint. Upload predictions use the pretrained `nateraw/vit-base-food101` image classifier, which predicts one dish from Food-101's 101 categories for the whole image. It does not locate multiple foods or recognize every food. First use downloads the model weights from Hugging Face. See the model card for its dataset and reported evaluation: https://huggingface.co/nateraw/food.
 
 ## Run locally
 
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The UI currently supports an experimental orange color heuristic; no match means the item is unsupported, not absent. Nutrition and mass estimates are illustrative and should not guide medical decisions.
+Open http://127.0.0.1:5000 and upload a JPG or PNG (maximum 12 MB). Images are processed in memory and are not saved by the web endpoint. The first scan downloads model weights and may take a few minutes; subsequent requests use the local cache. Prediction scores are not calibrated confidence. Nutrition, portion mass, ripeness, and glucose estimates remain unvalidated and should not guide medical decisions.
 
 `python scan.py path/to/image.jpg` runs the command-line report and writes `scanned_result.jpg` in the project folder.
 
