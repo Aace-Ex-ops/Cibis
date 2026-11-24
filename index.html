@@ -114,8 +114,16 @@
         </div>
         <h2 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 8px;">Real-Time Food Diagnostics</h2>
         <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px;">
-          Select between pre-scanned test cases to view instant bounding box instance segmentations, 3D mass estimation, and nutrient profiles.
+          Upload an image to try the experimental orange-color detector. Results are rough estimates and need manual verification.
         </p>
+
+        <div class="glass-card" style="padding:20px;margin-bottom:20px">
+          <form id="scan-form"><label for="scan-image">Choose a food image (up to 12 MB)</label>
+            <input id="scan-image" name="image" type="file" accept="image/*" required>
+            <button class="nav-btn" type="submit">Analyze image</button>
+          </form>
+          <p id="scan-notice" role="status" style="color:var(--text-muted)"></p>
+        </div>
 
         <!-- Test Case Switcher -->
         <div class="test-case-tabs">

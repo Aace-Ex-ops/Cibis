@@ -24,4 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 5. Initialize Food Scanner Manager
   new FoodScannerManager(cgmChart);
+  const form = document.getElementById('scan-form');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const notice = document.getElementById('scan-notice');
+    notice.textContent = 'Analyzing…';
+    try {
+      const response = await fetch('/api/scan', { method: 'POST', body: new FormData(form) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Scan failed');
+      const rows = data.items.map(item => `<div class="food-item-row"><span>${item.name}</span><span class="food-item-stats">${item.mass_g} g · ${item.calories_kcal} kcal</span></div>`).join('');
+      document.getElementById('items-list').innerHTML = rows || '<p>No supported orange-colored regions found.</p>';
+      document.getElementById('stat-mass').textContent = `${data.total_mass_g} g`;
+      document.getElementById('stat-calories').textContent = `${data.calories_kcal} kcal`;
+      document.getElementById('stat-protein').textContent = `${data.protein_g} g`;
+      document.getElementById('stat-carbs').textContent = `${data.carbs_g} g`;
+      notice.textContent = data.notice;
+    } catch (error) { notice.textContent = error.message; }
+  });
 });
